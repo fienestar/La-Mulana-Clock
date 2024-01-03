@@ -1,14 +1,16 @@
 <canvas id="output" style="max-height: 90vh;">
 
 </canvas>
+
+<ul>
+    <li>Background Color: <input type="color" value="#fa9664" id="background_color"></li>
+    <li>La-Mulana Numberal Font Color: <input type="color" value="#ffffff" id="numberal_font_color"></li>
+    <li>Hour Marker Color: <input type="color" value="#ffffff" id="hour_marker_color"></li>
+    <li>Minute Marker Color: <input type="color" value="#f44d1f" id="minute_marker_color"></li>
+</ul>
 <button id="download" disabled>Download</button>
 
 <script>
-    const minute_marker_color = [244, 77, 31, 0.5];
-    const hour_marker_color = [255, 255, 255, 1];
-    const numberal_font_color = [255, 255, 255]; // La-Mulana numberal font color
-    const background_color = [250, 150, 100];
-    
     const canvas = document.getElementById('output');
     const download = document.getElementById('download');
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -16,15 +18,17 @@
     let imageData = null;
     let imagePixels = null;
 
-    function getRgbaStyle(rgba, default_a = 1)
+    function getRgbaStyle(id, default_a = 1)
     {
+        const rgba = document.getElementById(id).value.match(/[0-9a-f]{2}/gi).map(x => parseInt(x, 16));
         let [r, g, b, a] = rgba;
         if(a === undefined) a = default_a;
         return `rgba(${r}, ${g}, ${b}, ${a})`;
     }
 
-    function getRgbaArray(rgba, default_a = 255)
+    function getRgbaArray(id, default_a = 255)
     {
+        const rgba = document.getElementById(id).value.match(/[0-9a-f]{2}/gi).map(x => parseInt(x, 16));
         let [r, g, b, a] = rgba;
         if(a === undefined) a = default_a;
         else a = Math.floor(a * 255);
@@ -41,11 +45,11 @@
             let r = 1024,
                 l = 32;
             
-            ctx.strokeStyle = getRgbaStyle(minute_marker_color);
+            ctx.strokeStyle = getRgbaStyle('minute_marker_color');
             if (i % 5 === 0) {
                 r -= l
                 l *= 2
-                ctx.strokeStyle = getRgbaStyle(hour_marker_color);
+                ctx.strokeStyle = getRgbaStyle('hour_marker_color');
             }
 
             const a = Math.PI * 2 * (i / 60) - Math.PI / 2;
@@ -63,9 +67,9 @@
     function colorFilter(r, g, b, a)
     {
         if(r + g + b < 255 * 3 / 2) {
-            return getRgbaArray(numberal_font_color, a);
+            return getRgbaArray('numberal_font_color', a);
         } else {
-            return getRgbaArray(background_color);
+            return getRgbaArray('background_color');
         }
     }
 
@@ -123,6 +127,9 @@
             ctx.drawImage(img, 0, 0);
             imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             imagePixels = new Uint8ClampedArray(imageData.data);
+            ['minute_marker_color', 'hour_marker_color', 'numberal_font_color', 'background_color'].forEach(id => {
+                document.getElementById(id).addEventListener('change', requestRender);
+            });
             requestRender()
         });
 
